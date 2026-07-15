@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DömösAiTech Plugin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a2e; color: #e0e0e0; padding: 16px;
+    }
+    h1 { font-size: 18px; margin-bottom: 12px; color: #4361ee; }
+    button {
+      display: block; width: 100%; padding: 10px; margin-bottom: 8px;
+      background: #4361ee; color: #fff; border: none; border-radius: 6px;
+      font-size: 14px; cursor: pointer;
+    }
+    button:hover { background: #3a56d4; }
+    #output {
+      margin-top: 12px; padding: 10px; background: #16213e;
+      border-radius: 6px; font-size: 13px; white-space: pre-wrap;
+      min-height: 60px;
+    }
+  </style>
+</head>
+<body>
+  <h1>DömösAiTech Plugin</h1>
+  <button onclick="send('hello')">Helló</button>
+  <button onclick="send('get-selection')">Kijelölés lekérése</button>
+  <button onclick="send('create-rect')">Téglalap létrehozása</button>
+  <div id="output">Kattints egy gombra...</div>
+
+  <script>
+    function send(type) {
+      parent.postMessage({ type }, '*')
+    }
+
+    window.addEventListener('message', (event) => {
+      const output = document.getElementById('output')
+      if (event.data?.type === 'selection') {
+        output.textContent = JSON.stringify(event.data.payload, null, 2)
+      } else if (event.data?.type === 'done' || event.data?.type === 'hello') {
+        output.textContent = event.data.payload
+      } else if (event.data?.type === 'error') {
+        output.textContent = '❌ ' + event.data.payload
+      }
+    })
+  </script>
+</body>
+</html>

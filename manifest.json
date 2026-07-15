@@ -1,0 +1,17 @@
+{
+  "name": "DömösAiTech Plugin",
+  "description": "Saját Penpot plugin — automatikus eszközök design munkafolyamatokhoz",
+  "version": 2,
+  "code": "plugin.js",
+  "icon": "icon.png",
+  "permissions": [
+    "content:read",
+    "content:write",
+    "library:read",
+    "library:write",
+    "user:read",
+    "comment:read",
+    "comment:write",
+    "allow:downloads"
+  ]
+}

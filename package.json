@@ -1,0 +1,15 @@
+{
+  "name": "penpot-plugin",
+  "version": "1.0.0",
+  "description": "Saját Penpot plugin — DömösAiTech",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "devDependencies": {
+    "@penpot/plugin-types": "^1.4.2",
+    "typescript": "^5.7"
+  }
+}
