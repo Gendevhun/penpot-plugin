@@ -1,15 +1,17 @@
 {
   "name": "penpot-plugin",
   "version": "1.0.0",
-  "description": "Saját Penpot plugin — DömösAiTech",
+  "description": "Saját Penpot plugin — DömösAiTech helyi védelmi MVP",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch"
+    "build": "tsc --noEmit && esbuild src/plugin.ts --bundle --format=iife --target=es2022 --outfile=plugin.js",
+    "test": "npm run build && esbuild tests/precog-core.test.ts --bundle --platform=node --format=esm --outfile=.test/precog-core.test.mjs && node --test .test/precog-core.test.mjs",
+    "watch": "tsc --noEmit --watch"
   },
   "devDependencies": {
     "@penpot/plugin-types": "^1.4.2",
+    "esbuild": "^0.25.0",
     "typescript": "^5.7"
   }
 }

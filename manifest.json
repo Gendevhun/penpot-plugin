@@ -1,17 +1,11 @@
 {
   "name": "DömösAiTech Plugin",
-  "description": "Saját Penpot plugin — automatikus eszközök design munkafolyamatokhoz",
+  "description": "Helyi Penpot-védelmi MVP: hozzájárulásos, fájlhoz kötött audit és pluginon belüli incidensjelzés",
   "version": 2,
   "code": "plugin.js",
-  "icon": "icon.png",
+  "icon": "icon.svg",
   "permissions": [
     "content:read",
-    "content:write",
-    "library:read",
-    "library:write",
-    "user:read",
-    "comment:read",
-    "comment:write",
-    "allow:downloads"
+    "content:write"
   ]
 }
