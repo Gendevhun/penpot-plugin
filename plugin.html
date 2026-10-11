@@ -3,49 +3,173 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DömösAiTech Plugin</title>
+  <title>DömösAiTech – helyi védelem</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #1a1a2e; color: #e0e0e0; padding: 16px;
-    }
-    h1 { font-size: 18px; margin-bottom: 12px; color: #4361ee; }
-    button {
-      display: block; width: 100%; padding: 10px; margin-bottom: 8px;
-      background: #4361ee; color: #fff; border: none; border-radius: 6px;
-      font-size: 14px; cursor: pointer;
-    }
-    button:hover { background: #3a56d4; }
-    #output {
-      margin-top: 12px; padding: 10px; background: #16213e;
-      border-radius: 6px; font-size: 13px; white-space: pre-wrap;
-      min-height: 60px;
-    }
+    :root { color-scheme: dark; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 16px; background: #101624; color: #e8edf7; font-size: 13px; line-height: 1.45; }
+    h1 { margin: 0 0 5px; font-size: 18px; color: #dce7ff; }
+    h2 { margin: 0 0 9px; font-size: 14px; color: #c5d4f2; }
+    p { margin: 6px 0; color: #b9c4d8; }
+    .subtle { color: #91a0ba; font-size: 12px; }
+    .card { margin-top: 12px; padding: 12px; border: 1px solid #26354d; border-radius: 9px; background: #172235; }
+    .status { display: flex; align-items: center; gap: 8px; font-weight: 650; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: #8792a5; flex: 0 0 auto; }
+    .dot.on { background: #48d597; box-shadow: 0 0 8px #48d59780; }
+    .dot.warn { background: #ffbe55; }
+    button, select { width: 100%; min-height: 36px; margin-top: 8px; padding: 8px 10px; border-radius: 6px; font: inherit; }
+    button { border: 0; background: #4669e8; color: white; cursor: pointer; font-weight: 650; }
+    button:hover { background: #5a7af1; }
+    button.secondary { border: 1px solid #40516d; background: #25344b; color: #e5edfa; }
+    button.secondary:hover { background: #30435f; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    select { border: 1px solid #40516d; background: #101a2a; color: #eef3ff; }
+    .notice { margin-top: 10px; padding: 9px; border-left: 3px solid #e1a73f; border-radius: 4px; background: #332b1e; color: #f1dfb9; font-size: 12px; }
+    .alert { margin-top: 10px; padding: 10px; border: 1px solid #7b3944; border-radius: 7px; background: #351f2b; color: #ffe1e5; }
+    .alert.success { border-color: #27745a; background: #17342c; color: #d8ffee; }
+    .alert.info { border-color: #3d5d96; background: #1d2d49; color: #dce8ff; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 9px; }
+    .stat { padding: 8px; border-radius: 6px; background: #111a29; color: #b9c4d8; }
+    .stat strong { display: block; color: #f1f5ff; font-size: 15px; }
+    #history { margin: 8px 0 0; padding-left: 18px; }
+    #history li { margin: 5px 0; color: #c0cbe0; overflow-wrap: anywhere; }
+    .footer { margin-top: 12px; color: #8795ad; font-size: 11px; }
+    code { color: #c7d6ff; }
   </style>
 </head>
 <body>
-  <h1>DömösAiTech Plugin</h1>
-  <button onclick="send('hello')">Helló</button>
-  <button onclick="send('get-selection')">Kijelölés lekérése</button>
-  <button onclick="send('create-rect')">Téglalap létrehozása</button>
-  <div id="output">Kattints egy gombra...</div>
+  <h1>DömösAiTech – helyi védelem</h1>
+  <p class="subtle">Penpoton belüli MVP: csak a plugin saját műveleteit és a tesztjelzéseket kezeli.</p>
+
+  <section class="card" aria-labelledby="status-heading">
+    <h2 id="status-heading">Védelmi állapot</h2>
+    <div class="status"><span id="status-dot" class="dot" aria-hidden="true"></span><span id="status-text">Állapot betöltése…</span></div>
+    <div class="stats">
+      <div class="stat"><strong id="entry-count">—</strong>naplóbejegyzés</div>
+      <div class="stat"><strong id="integrity-text">—</strong>hash-lánc</div>
+    </div>
+    <p class="notice">Engedélyezéskor a minimális, hash-láncolt auditadat a <strong>jelenlegi Penpot-tervfájlba</strong> kerül. Nem hagyja el a Penpotot. A fájlhoz hozzáférők módosíthatják; a lánc csak módosításészlelésre szolgál, nem változtathatatlan vagy aláírt tároló.</p>
+    <button id="consent-button" type="button" class="secondary">Helyi védelem engedélyezése ehhez a fájlhoz</button>
+  </section>
+
+  <section class="card" aria-labelledby="test-heading">
+    <h2 id="test-heading">Helyi incidensjelzés – teszt</h2>
+    <p>Válassz egy előre definiált, szimulált jelet. Ez ellenőrzi a helyi risk/policy/audit folyamatot, <strong>nem valódi érzékelés</strong>.</p>
+    <select id="scenario" aria-label="Szimulált incidens típusa">
+      <option value="phishing-high">Adathalászat – magas kockázat (blokkolási döntés)</option>
+      <option value="malware-file">Gyanús fájl – MIME-eltérés (kihívás)</option>
+      <option value="privacy-export">Érzékeny adat kiexportálása (kihívás)</option>
+    </select>
+    <button id="test-button" type="button">Szimulált incidens feldolgozása</button>
+    <div id="incident-result" class="alert info" role="status" aria-live="polite" hidden></div>
+  </section>
+
+  <section class="card" aria-labelledby="plugin-heading">
+    <h2 id="plugin-heading">Plugin-műveletek</h2>
+    <p class="subtle">A kiválasztás és téglalap-létrehozás csak bekapcsolt védelemnél fut át a helyi policy-n és auditnaplón.</p>
+    <button id="selection-button" type="button" class="secondary">Kijelölés lekérése</button>
+    <button id="rectangle-button" type="button" class="secondary">Téglalap létrehozása</button>
+    <button id="hello-button" type="button" class="secondary">Helló</button>
+    <div id="output" class="alert info" role="status" aria-live="polite">A plugin indulására várok…</div>
+  </section>
+
+  <section class="card" aria-labelledby="audit-heading">
+    <h2 id="audit-heading">Legutóbbi auditbejegyzések</h2>
+    <p id="history-empty" class="subtle">Még nincs naplóbejegyzés.</p>
+    <ol id="history"></ol>
+    <button id="refresh-button" type="button" class="secondary">Állapot frissítése</button>
+  </section>
+
+  <p class="footer">Nincs háttérfigyelés, böngésző-/eszközszenzor, külső értesítés vagy Genesis-backend bekötve. A „blokkolás” csak a plugin saját, policy-n átvezetett műveleteire vonatkozhat; a szimulált jelzés nem blokkol külső alkalmazást.</p>
 
   <script>
-    function send(type) {
-      parent.postMessage({ type }, '*')
+    const send = (type, payload = {}) => parent.postMessage({ type, payload }, "*");
+    const statusText = document.getElementById("status-text");
+    const statusDot = document.getElementById("status-dot");
+    const countEl = document.getElementById("entry-count");
+    const integrityEl = document.getElementById("integrity-text");
+    const consentButton = document.getElementById("consent-button");
+    const testButton = document.getElementById("test-button");
+    const incidentResult = document.getElementById("incident-result");
+    const output = document.getElementById("output");
+    const historyList = document.getElementById("history");
+    const historyEmpty = document.getElementById("history-empty");
+    let protectionEnabled = false;
+    let integrityOk = true;
+
+    function setMessage(element, text, kind = "info") {
+      element.hidden = false;
+      element.className = `alert ${kind}`;
+      element.textContent = text;
     }
 
-    window.addEventListener('message', (event) => {
-      const output = document.getElementById('output')
-      if (event.data?.type === 'selection') {
-        output.textContent = JSON.stringify(event.data.payload, null, 2)
-      } else if (event.data?.type === 'done' || event.data?.type === 'hello') {
-        output.textContent = event.data.payload
-      } else if (event.data?.type === 'error') {
-        output.textContent = '❌ ' + event.data.payload
+    function renderState(state) {
+      protectionEnabled = state.enabled === true;
+      integrityOk = state.integrity === "ok";
+      statusDot.className = integrityOk ? (protectionEnabled ? "dot on" : "dot") : "dot warn";
+      statusText.textContent = !integrityOk
+        ? `Naplóhiba – védelem kikapcsolva${state.error ? `: ${state.error}` : ""}`
+        : protectionEnabled ? "Helyi védelem aktív ehhez a fájlhoz" : "Helyi védelem kikapcsolva";
+      countEl.textContent = String(state.count ?? 0);
+      integrityEl.textContent = integrityOk ? "Ép" : "Hiba";
+      consentButton.textContent = protectionEnabled
+        ? "Helyi védelem kikapcsolása ehhez a fájlhoz"
+        : "Helyi védelem engedélyezése ehhez a fájlhoz";
+      consentButton.className = protectionEnabled ? "secondary" : "";
+      consentButton.disabled = !integrityOk && !protectionEnabled;
+      testButton.disabled = !protectionEnabled || !integrityOk;
+      historyList.replaceChildren();
+      const entries = Array.isArray(state.entries) ? state.entries : [];
+      historyEmpty.hidden = entries.length > 0;
+      for (const entry of entries) {
+        const li = document.createElement("li");
+        const demo = entry.demo ? " · TESZT" : "";
+        const digest = typeof entry.entryHash === "string" ? ` · hash ${entry.entryHash.slice(0, 10)}…` : "";
+        li.textContent = `#${entry.seq} ${entry.ts} · ${entry.eventType} · ${entry.category} · ${entry.risk}/100 · ${entry.action}${demo}${digest}`;
+        historyList.appendChild(li);
       }
-    })
+    }
+
+    consentButton.addEventListener("click", () => {
+      send("set-consent", { enabled: !protectionEnabled });
+      consentButton.disabled = true;
+    });
+    testButton.addEventListener("click", () => {
+      incidentResult.hidden = true;
+      send("test-incident", { scenarioId: document.getElementById("scenario").value });
+    });
+    document.getElementById("selection-button").addEventListener("click", () => send("get-selection"));
+    document.getElementById("rectangle-button").addEventListener("click", () => send("create-rect"));
+    document.getElementById("hello-button").addEventListener("click", () => send("hello"));
+    document.getElementById("refresh-button").addEventListener("click", () => send("get-state"));
+
+    window.addEventListener("message", (event) => {
+      if (event.source !== parent || !event.data || typeof event.data !== "object") return;
+      const { type, payload = {} } = event.data;
+      if (type === "security-state") {
+        renderState(payload);
+      } else if (type === "incident-result") {
+        const actionLabel = { allow: "engedélyez", warn: "figyelmeztet", challenge: "megerősítést kér", block: "blokkol" }[payload.action] ?? payload.action;
+        const text = `${payload.demo ? "SZIMULÁLT INCIDENS" : "INCIDENS"}: ${payload.label}. Kockázat: ${payload.risk}/100; confidence: ${Math.round(payload.confidence * 100)}%; policy: ${actionLabel}. ${payload.logged ? `Naplózva (#${payload.seq}, hash ${String(payload.entryHash).slice(0, 10)}…).` : "NINCS naplózva."} Ez tesztjelzés, nem valós érzékelés.`;
+        setMessage(incidentResult, text, "");
+      } else if (type === "selection") {
+        const selection = Array.isArray(payload.selection) ? payload.selection : [];
+        setMessage(output, JSON.stringify(selection, null, 2), "info");
+      } else if (type === "operation-result") {
+        setMessage(output, String(payload.message ?? "Kész."), "success");
+      } else if (type === "consent-result") {
+        consentButton.disabled = false;
+        const text = payload.auditRecorded === false
+          ? "A védelem kikapcsolt; a napló kapacitása miatt a kikapcsolás nem került a láncba."
+          : payload.enabled ? "Helyi védelem bekapcsolva ehhez a Penpot-fájlhoz." : "Helyi védelem kikapcsolva ehhez a Penpot-fájlhoz.";
+        setMessage(output, text, "success");
+      } else if (type === "error") {
+        consentButton.disabled = false;
+        setMessage(output, String(payload.message ?? "Hiba történt."), "");
+      }
+    });
+
+    send("get-state");
   </script>
 </body>
 </html>
